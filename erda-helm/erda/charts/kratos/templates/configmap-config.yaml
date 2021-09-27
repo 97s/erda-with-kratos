@@ -1,0 +1,70 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kratos.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "kratos.labels" . | indent 4 }}
+data:
+  # Render the kratos config:
+  "kratos.yaml": |
+    courier:
+      smtp:
+        connection_uri: smtps://foo:bar@my-mailserver:1234/?skip_ssl_verify=false
+    hashers:
+      argon2:
+        iterations: 2
+        key_length: 16
+        memory: 128MB
+        parallelism: 1
+        salt_length: 16
+    identity:
+      default_schema_url: base64://ewogICIkaWQiOiAiaHR0cHM6Ly9zY2hlbWFzLm9yeS5zaC9wcmVzZXRzL2tyYXRvcy9xdWlja3N0YXJ0L2VtYWlsLXBhc3N3b3JkL2lkZW50aXR5LnNjaGVtYS5qc29uIiwKICAiJHNjaGVtYSI6ICJodHRwOi8vanNvbi1zY2hlbWEub3JnL2RyYWZ0LTA3L3NjaGVtYSMiLAogICJ0aXRsZSI6ICJQZXJzb24iLAogICJ0eXBlIjogIm9iamVjdCIsCiAgInByb3BlcnRpZXMiOiB7CiAgICAidHJhaXRzIjogewogICAgICAidHlwZSI6ICJvYmplY3QiLAogICAgICAicHJvcGVydGllcyI6IHsKICAgICAgICAiZW1haWwiOiB7CiAgICAgICAgICAidHlwZSI6ICJzdHJpbmciLAogICAgICAgICAgImZvcm1hdCI6ICJlbWFpbCIsCiAgICAgICAgICAidGl0bGUiOiAiRS1NYWlsIiwKICAgICAgICAgICJtaW5MZW5ndGgiOiAzLAogICAgICAgICAgIm9yeS5zaC9rcmF0b3MiOiB7CiAgICAgICAgICAgICJjcmVkZW50aWFscyI6IHsKICAgICAgICAgICAgICAicGFzc3dvcmQiOiB7CiAgICAgICAgICAgICAgICAiaWRlbnRpZmllciI6IHRydWUKICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0sCiAgICAgICAgICAgICJ2ZXJpZmljYXRpb24iOiB7CiAgICAgICAgICAgICAgInZpYSI6ICJlbWFpbCIKICAgICAgICAgICAgfSwKICAgICAgICAgICAgInJlY292ZXJ5IjogewogICAgICAgICAgICAgICJ2aWEiOiAiZW1haWwiCiAgICAgICAgICAgIH0KICAgICAgICAgIH0KICAgICAgICB9LAogICAgICAgICJ1c2VybmFtZSI6IHsKICAgICAgICAgICJ0eXBlIjogInN0cmluZyIsCiAgICAgICAgICAib3J5LnNoL2tyYXRvcyI6IHsKICAgICAgICAgICAgImNyZWRlbnRpYWxzIjogewogICAgICAgICAgICAgICJwYXNzd29yZCI6IHsKICAgICAgICAgICAgICAgICJpZGVudGlmaWVyIjogdHJ1ZQogICAgICAgICAgICAgIH0KICAgICAgICAgICAgfQogICAgICAgICAgfQogICAgICAgIH0sCiAgICAgICAgIm5pY2tuYW1lIjogewogICAgICAgICAgInR5cGUiOiAic3RyaW5nIgogICAgICAgIH0sCiAgICAgICAgInBob25lIjogewogICAgICAgICAgInR5cGUiOiAic3RyaW5nIgogICAgICAgIH0sCiAgICAgICAgImF2YXRhciI6IHsKICAgICAgICAgICJ0eXBlIjogInN0cmluZyIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJyZXF1aXJlZCI6IFsKICAgICAgICAiZW1haWwiCiAgICAgIF0sCiAgICAgICJhZGRpdGlvbmFsUHJvcGVydGllcyI6IGZhbHNlCiAgICB9CiAgfQp9Cg==
+    log:
+      format: text
+      leak_sensitive_values: true
+      level: debug
+    selfservice:
+      default_browser_return_url: http://{{ .Values.global.domain }}
+      flows:
+        error:
+          ui_url: http://{{ .Values.global.domain }}
+        login:
+          lifespan: 10m
+          ui_url: http://{{ .Values.global.domain }}/uc/login
+        logout:
+          after:
+            default_browser_return_url: /
+        recovery:
+          enabled: true
+          ui_url: /uc/recovery
+        registration:
+          after:
+            password:
+              hooks:
+              - hook: session
+          lifespan: 10m
+          ui_url: http://{{ .Values.global.domain }}/uc/registration
+        settings:
+          privileged_session_max_age: 15m
+          ui_url: /uc/settings
+        verification:
+          after:
+            default_browser_return_url: /
+          enabled: true
+          ui_url: /uc/verify
+      methods:
+        password:
+          enabled: true
+      whitelisted_return_urls:
+      - http://127.0.0.1:4455
+    serve:
+      admin:
+        base_url: erda-kratos-admin:4434
+        port: 4434
+      public:
+        base_url: /api/uc
+        cors:
+          enabled: true
+        port: 4433

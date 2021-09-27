@@ -309,6 +309,9 @@ registry:
   custom:
     nodeName:
     nodeIP:
+    address:
+    username:
+    password:
 
 
 sonar:
