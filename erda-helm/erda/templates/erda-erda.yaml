@@ -631,8 +631,8 @@ spec:
             duration: 120
           exec: { }
       pipeline:
-        image:
-          {{ .Values.global.image.repository }}/erda:{{ .Values.erda.tags.erda }}
+        image: "registry.cn-shanghai.aliyuncs.com/viper/pipeline:1.3.0-alpha-20210906104111-1fbbe309"
+#           {{ .Values.global.image.repository }}/erda:{{ .Values.erda.tags.erda }}
         cmd: /app/pipeline
         ports:
           - port: 3081
